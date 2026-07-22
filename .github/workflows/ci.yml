@@ -56,7 +56,7 @@ jobs:
         run: npm ci
 
       - name: Run Lighthouse perf job
-        run: npm run perf:lighthouse
+        run: npm run perf:lhci
 
       - name: Upload Lighthouse artifact
         if: always()
