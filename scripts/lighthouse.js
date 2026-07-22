@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import lighthouse from 'lighthouse';
-import chromeLauncher from 'chrome-launcher';
+import { launch } from 'chrome-launcher';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = new URL('.', import.meta.url).pathname;
@@ -12,7 +12,7 @@ async function runLighthouse() {
   const httpServer = createServer({ root: `${__dirname}/../dist`, cors: true });
   const serverInstance = httpServer.listen(4173);
 
-  const chrome = await chromeLauncher.launch({ chromeFlags: ['--headless=new', '--no-sandbox'] });
+  const chrome = await launch({ chromeFlags: ['--headless=new', '--no-sandbox'] });
   const runnerResult = await lighthouse('http://127.0.0.1:4173', {
     port: chrome.port,
     output: 'html',
