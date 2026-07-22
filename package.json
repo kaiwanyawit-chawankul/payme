@@ -10,11 +10,14 @@
     "start": "node server.js",
     "serve": "npm run build && node server.js",
     "preview": "npm run build && vite preview --host localhost --port 4173",
-    "postinstall": "npx playwright install --with-deps",
     "test:e2e": "npx playwright test",
     "perf:lighthouse": "npm run perf:lhci",
     "perf:lhci": "npm run build && concurrently --kill-others \"npx http-server ./dist -p 4173\" \"npx wait-on http://127.0.0.1:4173 && npx @lhci/cli collect --url=http://127.0.0.1:4173 --numberOfRuns=3 --outputPath=reports/lhci-collection.json\"",
-    "perf:k6": "node scripts/run-k6.js"
+    "perf:k6": "node scripts/run-k6.js",
+    "deploy:vercel": "npx vercel --prod"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -27,8 +30,8 @@
     "chrome-launcher": "^1.2.1",
     "concurrently": "^10.0.3",
     "http-server": "^14.1.1",
-    "@lhci/cli": "^0.11.0",
-    "wait-on": "^7.0.1",
+    "@lhci/cli": "^0.15.1",
+    "wait-on": "^9.1.0",
     "lighthouse": "^13.4.1",
     "vite": "^8.1.5"
   }

@@ -78,3 +78,21 @@ npm run perf:k6
 ## Deployment
 
 This site is ready to deploy on Vercel as a static app. Use the default build command `npm run build` and publish the `dist` folder.
+
+### Vercel CLI
+
+Deploy using the Vercel CLI. Install globally or use `npx`:
+
+```bash
+# login interactively (one-time)
+npx vercel login
+
+# deploy (preview)
+npx vercel
+
+# deploy production
+npx vercel --prod
+
+# or use the included npm script
+npm run deploy:vercel
+```
