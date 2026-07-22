@@ -2,25 +2,30 @@ import { spawn, execSync } from 'node:child_process';
 import http from 'node:http';
 import process from 'node:process';
 
-const DEV_URL = 'http://localhost:5173';
-const SERVER_CMD = 'npx';
-const SERVER_ARGS = ['vite', '--host', 'localhost', '--port', '5173'];
+const DEV_URL = 'http://127.0.0.1:5173';
+const SERVER_CMD = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const SERVER_ARGS = ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '5173'];
 
-function waitForServer(url, timeoutMs = 10000) {
+function waitForServer(url, timeoutMs = 30000) {
   return new Promise((resolve, reject) => {
     const deadline = Date.now() + timeoutMs;
 
     const check = () => {
       const req = http.get(url, (res) => {
-        res.destroy();
-        resolve();
+        res.resume();
+        if (res.statusCode && res.statusCode >= 200 && res.statusCode < 500) {
+          resolve();
+          return;
+        }
+
+        reject(new Error(`Server responded with status ${res.statusCode}`));
       });
 
       req.on('error', (error) => {
         if (Date.now() > deadline) {
           reject(new Error(`Server did not start within ${timeoutMs}ms: ${error.message}`));
         } else {
-          setTimeout(check, 200);
+          setTimeout(check, 500);
         }
       });
     };
@@ -43,7 +48,9 @@ async function run() {
     console.error('Failed to run k6 performance test:', error.message);
     process.exitCode = 1;
   } finally {
-    viteProcess.kill();
+    if (!viteProcess.killed) {
+      viteProcess.kill();
+    }
   }
 }
 

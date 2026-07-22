@@ -11,10 +11,13 @@ export const options = {
 };
 
 export default function () {
-  const response = http.get('http://127.0.0.1:5173');
+  const response = http.get('http://127.0.0.1:5173', { timeout: '5s' });
+  const body = response.body || '';
+
   check(response, {
     'status is 200': (r) => r.status === 200,
-    'body has Payme': (r) => r.body.includes('Payme')
+    'body has Payme': (r) => (r.body || '').includes('Payme')
   });
+
   sleep(1);
 }
