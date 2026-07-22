@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payme</title>
+    <meta
+      name="description"
+      content="Payme is a simple donation page for Stripe with room to expand to PayPal."
+    />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="hero">
+        <div class="brand">
+          <span class="logo">💸</span>
+          <div>
+            <h1>Payme</h1>
+            <p>
+              Donate a little, lighten the load, and keep the system healthy.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <section class="card">
+        <h2>Support the author</h2>
+        <p class="intro">
+          This mock payment page helps you test Stripe flow and expand easily for
+          PayPal later.
+        </p>
+
+        <div class="section-label">Choose your donation amount</div>
+        <div class="amount-grid" id="amountGrid"></div>
+
+        <div class="section-label">Pay with</div>
+        <div class="button-row" id="buttonRow"></div>
+
+        <div class="footnote">
+          <strong>Note:</strong> Keeping too many digits on your account can add
+          load to the system and environment.
+        </div>
+
+        <div class="stripe-form hidden" id="stripeForm">
+          <div class="section-label">Enter your card details</div>
+          <div class="stripe-box">
+            <div id="cardElement" class="stripe-element"></div>
+            <div id="cardErrors" class="payment-description" aria-live="polite"></div>
+          </div>
+          <button id="stripeSubmitButton" class="pay-button" disabled>Donate with Stripe</button>
+          <p class="payment-description">
+            Use Stripe test card <strong>4242 4242 4242 4242</strong> with any future date and CVC for demo purposes.
+          </p>
+        </div>
+      </section>
+
+      <div class="toast hidden" id="toast" role="status" aria-live="polite"></div>
+    </main>
+
+    <script src="https://js.stripe.com/v3/"></script>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
