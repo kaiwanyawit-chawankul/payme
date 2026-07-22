@@ -65,7 +65,7 @@ npm run test:e2e
 npm run perf:lighthouse
 ```
 
-The report is written to `reports/lighthouse-report.html`.
+LHCI will collect Lighthouse data and write the output to `reports/lhci-collection.json`.
 
 ## Run k6 performance test
 
