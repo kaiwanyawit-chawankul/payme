@@ -25,7 +25,7 @@ const stripeForm = document.getElementById('stripeForm');
 const stripeSubmitButton = document.getElementById('stripeSubmitButton');
 const cardErrors = document.getElementById('cardErrors');
 
-const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:4242' : '';
+const BACKEND_URL = import.meta.env.DEV ? 'http://localhost:4242' : '/api';
 
 let stripe;
 let elements;
