@@ -10,7 +10,7 @@ export const options = {
   }
 };
 
-const TARGET_URL = process.env.STAGE_URL || 'http://127.0.0.1:5173';
+const TARGET_URL = __ENV.TARGET_URL || 'http://localhost:5173';
 
 export default function () {
   const response = http.get(TARGET_URL, { timeout: '5s' });

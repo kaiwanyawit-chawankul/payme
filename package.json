@@ -4,15 +4,16 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "dev:all": "concurrently --kill-others \"npm run dev -- --host localhost --port 5173\" \"npm run start\"",
+    "dev": "vite --host 127.0.0.1 --port 5173",
+    "dev:all": "concurrently --kill-others \"npm run dev -- --host 127.0.0.1 --port 5173\" \"npm run start\"",
     "build": "vite build",
     "start": "node server.js",
     "serve": "npm run build && node server.js",
-    "preview": "npm run build && vite preview --host localhost --port 4173",
+    "preview": "npm run build && vite preview --host 127.0.0.1 --port 4173",
     "test:e2e": "npx playwright test",
     "perf:lhci": "npx @lhci/cli autorun",
-    "perf:k6": "node scripts/run-k6.js",
+    "perf:k6": "k6 run scripts/performance.js",
+    "perf:k6:prod": "TARGET_URL=https://payme-black-pi.vercel.app k6 run scripts/performance.js",
     "deploy:vercel": "npx vercel --prod"
   },
   "engines": {
