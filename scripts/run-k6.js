@@ -2,6 +2,7 @@ import { spawn, execSync } from 'node:child_process';
 import http from 'node:http';
 import process from 'node:process';
 
+const STAGE_URL = process.env.STAGE_URL;
 const DEV_URL = 'http://127.0.0.1:5173';
 const SERVER_CMD = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const SERVER_ARGS = ['run', 'dev', '--', '--host', '127.0.0.1', '--port', '5173'];
@@ -35,6 +36,17 @@ function waitForServer(url, timeoutMs = 30000) {
 }
 
 async function run() {
+  if (STAGE_URL) {
+    console.log(`Using deployed stage URL: ${STAGE_URL}`);
+    try {
+      execSync('k6 run k6/performance.js', { stdio: 'inherit', shell: true });
+    } catch (error) {
+      console.error('Failed to run k6 performance test against STAGE_URL:', error.message);
+      process.exitCode = 1;
+    }
+    return;
+  }
+
   const viteProcess = spawn(SERVER_CMD, SERVER_ARGS, {
     shell: true,
     stdio: 'inherit'

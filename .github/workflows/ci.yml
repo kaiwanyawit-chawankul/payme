@@ -38,9 +38,50 @@ jobs:
       - name: Run Playwright tests
         run: npm run test:e2e -- --project=chromium tests/payme.spec.ts
 
-  perf-k6:
+  deploy-stage:
     runs-on: ubuntu-latest
     needs: test
+    environment: staging
+    outputs:
+      stage_url: ${{ steps.stage.outputs.stage_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel
+
+      - name: Pull Vercel configuration
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build for Vercel staging
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy to Vercel staging
+        id: stage
+        run: |
+          output=$(vercel deploy --prebuilt --target=preview --yes --format=json --token=${{ secrets.VERCEL_TOKEN }} --project=${{ secrets.VERCEL_PROJECT_ID }})
+          echo "$output"
+          echo "stage_url=$(echo "$output" | python -c 'import sys, json; print(json.load(sys.stdin)["url"])')" >> $GITHUB_OUTPUT
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  perf-k6:
+    runs-on: ubuntu-latest
+    needs: deploy-stage
     continue-on-error: true
     steps:
       - name: Checkout repository
@@ -78,12 +119,14 @@ jobs:
         run: echo "$HOME/.k6/bin" >> $GITHUB_PATH
 
       - name: Run k6 performance job
+        env:
+          STAGE_URL: ${{ needs.deploy-stage.outputs.stage_url }}
         run: npm run perf:k6
 
-  deploy-stage:
+  perf:
     runs-on: ubuntu-latest
-    needs: test
-    environment: staging
+    needs: deploy-stage
+    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -94,30 +137,22 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel
+      - name: Install dependencies
+        run: npm ci
 
-      - name: Pull Vercel configuration
-        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Run Lighthouse perf job
+        run: npx @lhci/cli autorun --collect.url=${{ needs.deploy-stage.outputs.stage_url }}
 
-      - name: Build for Vercel staging
-        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Deploy to Vercel staging
-        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Upload Lighthouse artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/**
 
   deploy-prod:
     runs-on: ubuntu-latest
-    needs: test
+    needs: deploy-stage
     environment: production
     steps:
       - name: Checkout repository
@@ -150,29 +185,3 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-  perf:
-    runs-on: ubuntu-latest
-    needs: deploy-prod
-    continue-on-error: true
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: '24'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run Lighthouse perf job
-        run: npm run perf:lhci
-
-      - name: Upload Lighthouse artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: lighthouse-report
-          path: .lighthouseci/**
