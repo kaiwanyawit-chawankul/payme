@@ -144,33 +144,46 @@ async function handleStripeSubmit() {
   }
 
   stripeSubmitButton.disabled = true;
-  const result = await stripe.createToken(card);
-
-  if (result.error) {
-    cardErrors.textContent = result.error.message;
-    showToast('Stripe card details are invalid.', 'warning');
-    stripeSubmitButton.disabled = false;
-    return;
-  }
+  cardErrors.textContent = '';
 
   const endpoint = `${BACKEND_URL}/charge`;
   const response = await fetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ token: result.token.id, amount: selectedAmount })
+    body: JSON.stringify({ amount: selectedAmount })
   });
 
   const data = await response.json();
-  if (!response.ok || data.error) {
-    cardErrors.textContent = data.error || 'Unable to process payment.';
+  if (!response.ok || data.error || !data.clientSecret) {
+    cardErrors.textContent = data.error || 'Unable to create payment.';
     showToast(`Payment failed: ${data.error || response.statusText}`, 'warning');
     stripeSubmitButton.disabled = false;
     return;
   }
 
-  showToast(`Payment succeeded: ${data.charge.id}`, 'success');
-  card.clear();
-  stripeSubmitButton.disabled = true;
+  const result = await stripe.confirmCardPayment(data.clientSecret, {
+    payment_method: {
+      card
+    }
+  });
+
+  if (result.error) {
+    cardErrors.textContent = result.error.message;
+    showToast(`Payment failed: ${result.error.message}`, 'warning');
+    stripeSubmitButton.disabled = false;
+    return;
+  }
+
+  if (result.paymentIntent && result.paymentIntent.status === 'succeeded') {
+    showToast(`Payment succeeded: ${result.paymentIntent.id}`, 'success');
+    card.clear();
+    stripeSubmitButton.disabled = true;
+    return;
+  }
+
+  cardErrors.textContent = 'Payment could not be completed.';
+  showToast('Payment could not be completed.', 'warning');
+  stripeSubmitButton.disabled = false;
 }
 
 function init() {

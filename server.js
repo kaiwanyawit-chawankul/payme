@@ -14,10 +14,10 @@ app.use(express.json());
 app.use(express.static('dist'));
 
 app.post('/charge', async (req, res) => {
-  const { token, amount } = req.body || {};
+  const { amount } = req.body || {};
 
-  if (!token || !amount) {
-    return res.status(400).json({ error: 'Missing token or amount.' });
+  if (!amount) {
+    return res.status(400).json({ error: 'Missing amount.' });
   }
 
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -25,24 +25,27 @@ app.post('/charge', async (req, res) => {
   }
 
   try {
-    const charge = await stripe.charges.create({
+    const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(Number(amount) * 100),
       currency: 'usd',
-      source: token,
+      payment_method_types: ['card'],
       description: `Donation of $${amount} via Payme demo`
     });
 
-    return res.status(200).json({ charge });
+    return res.status(200).json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id
+    });
   } catch (error) {
-    return res.status(500).json({ error: error.message || 'Charge creation failed.' });
+    return res.status(500).json({ error: error.message || 'PaymentIntent creation failed.' });
   }
 });
 
 app.post('/api/charge', async (req, res) => {
-  const { token, amount } = req.body || {};
+  const { amount } = req.body || {};
 
-  if (!token || !amount) {
-    return res.status(400).json({ error: 'Missing token or amount.' });
+  if (!amount) {
+    return res.status(400).json({ error: 'Missing amount.' });
   }
 
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -50,16 +53,19 @@ app.post('/api/charge', async (req, res) => {
   }
 
   try {
-    const charge = await stripe.charges.create({
+    const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(Number(amount) * 100),
       currency: 'usd',
-      source: token,
+      payment_method_types: ['card'],
       description: `Donation of $${amount} via Payme demo`
     });
 
-    return res.status(200).json({ charge });
+    return res.status(200).json({
+      clientSecret: paymentIntent.client_secret,
+      paymentIntentId: paymentIntent.id
+    });
   } catch (error) {
-    return res.status(500).json({ error: error.message || 'Charge creation failed.' });
+    return res.status(500).json({ error: error.message || 'PaymentIntent creation failed.' });
   }
 });
 
