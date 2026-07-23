@@ -120,7 +120,7 @@ jobs:
 
       - name: Run k6 performance job
         env:
-          STAGE_URL: ${{ needs.deploy-stage.outputs.stage_url }}
+          TARGET_URL: ${{ needs.deploy-stage.outputs.stage_url }}
         run: npm run perf:k6
 
   perf:
