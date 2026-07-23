@@ -1,0 +1,11 @@
+{
+  "ci": {
+    "collect": {
+      "url": ["https://payme-black-pi.vercel.app/"],
+      "numberOfRuns": 1
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    }
+  }
+}

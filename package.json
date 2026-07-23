@@ -11,7 +11,7 @@
     "serve": "npm run build && node server.js",
     "preview": "npm run build && vite preview --host localhost --port 4173",
     "test:e2e": "npx playwright test",
-    "perf:lhci": "npm run build && concurrently --kill-others \"npx http-server ./dist -p 4173\" \"npx wait-on http://127.0.0.1:4173 && npx @lhci/cli autorun\"",
+    "perf:lhci": "npx @lhci/cli autorun",
     "perf:k6": "node scripts/run-k6.js",
     "deploy:vercel": "npx vercel --prod"
   },
